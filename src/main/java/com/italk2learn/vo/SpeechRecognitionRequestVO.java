@@ -12,6 +12,7 @@ public class SpeechRecognitionRequestVO extends RequestVO {
 	private String server;
 	private String language;
 	private String model;
+	private byte[] finalByteArray;
 	
 	private byte[] data;
 	
@@ -53,6 +54,14 @@ public class SpeechRecognitionRequestVO extends RequestVO {
 
 	public void setInstance(int instance) {
 		this.instance = instance;
+	}
+
+	public byte[] getFinalByteArray() {
+		return finalByteArray;
+	}
+
+	public void setFinalByteArray(byte[] finalByteArray) {
+		this.finalByteArray = finalByteArray;
 	}
 
 }
