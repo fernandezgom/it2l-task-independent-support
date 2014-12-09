@@ -24,13 +24,12 @@ import com.italk2learn.tis.Analysis;
 import com.italk2learn.vo.HeaderVO;
 import com.italk2learn.vo.SpeechRecognitionRequestVO;
 import com.italk2learn.vo.SpeechRecognitionResponseVO;
-import com.italk2learn.vo.TaskIndependentSupportRequestVO;
 
 @RunWith(value = SpringRunner.class)
 @Configuration(locations = { "web-application-config.xml" })
 public class TaskIndependentSupportTest {
 	
-	private static final int ARRAY_SIZE = 500000;
+	private static final int ARRAY_SIZE = 100000;
 	private static final int NUM_SECONDS = 5 * 1000;
 	
 	@Dependency
@@ -40,31 +39,12 @@ public class TaskIndependentSupportTest {
 	private SpeechRecognitionResponseVO liveResponse=new SpeechRecognitionResponseVO();
 	private List<byte[]> audioChunks=new ArrayList<byte[]>();
 	private int counter=0;
+	private boolean oneChunk=false;
+	private boolean loop=true;
 	
 	
 	private static final Logger LOGGER = Logger
 	.getLogger(TaskIndependentSupportTest.class);
-	
-	@Test
-	public void sendSpeechToSupport() throws Exception{
-		LOGGER.info("TESTING sendSpeechToSupport");
-		TaskIndependentSupportRequestVO request= new TaskIndependentSupportRequestVO();
-		String words[]={"hello","this","is","a","test"};
-		boolean testOk = false;
-		request.setHeaderVO(new HeaderVO());
-		request.getHeaderVO().setLoginUser("student1");
-		request.setWords(words);
-		try {
-			final Analysis response = new Analysis();
-			response.sendSpeechOutputToSupport(request.getWords());
-			testOk = true;
-		} catch (Exception e) {
-			e.printStackTrace();
-			LOGGER.error(e);
-		}
-		Assert.assertTrue(testOk);
-	}
-	
 	
 	@Test
 	public void sendRealSpeechToSupport() throws Exception{
@@ -73,9 +53,9 @@ public class TaskIndependentSupportTest {
 		final Analysis an = new Analysis();
 		request.setHeaderVO(new HeaderVO());
 		request.getHeaderVO().setLoginUser("student1");
-		request.setInstance(1);
+		request.setInstance(12);
 		boolean testOk = false;
-		File f=new File("bbc1.wav");
+		File f=new File("no-maths-vocab-example-01-mono.wav");
 		long l=f.length();
 		long numChunks=l/ARRAY_SIZE;
 		System.out.println("the file is " + l + " bytes long");
@@ -89,39 +69,61 @@ public class TaskIndependentSupportTest {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		int initialChunk=0;
-		int finalChunk=(int)l/(int)numChunks;
-		for (int i=0;i<numChunks;i++){
-			audioChunks.add(Arrays.copyOfRange(b, initialChunk, finalChunk));
-			System.out.println("Chunk "+i+" starts at "+initialChunk+" bytes and finish at "+finalChunk+" bytes");
-			initialChunk=finalChunk+1;
-			finalChunk=finalChunk+((int)l/(int)numChunks);
-		}
-		if (initialChunk<l){
-			System.out.println("Last chunk starts at "+initialChunk+" bytes and finish at "+l+" bytes");
-			audioChunks.add(Arrays.copyOfRange(b, initialChunk, (int)l-1));
+		if (!oneChunk) {
+			int initialChunk=0;
+			int finalChunk=(int)l/(int)numChunks;
+			for (int i=0;i<numChunks;i++){
+				byte[] aux=Arrays.copyOfRange(b, initialChunk, finalChunk);
+				audioChunks.add(aux);
+				System.out.println("Chunk "+i+" starts at "+initialChunk+" bytes and finish at "+finalChunk+" bytes");
+				initialChunk=finalChunk;
+				finalChunk=finalChunk+((int)l/(int)numChunks);
+			}
+			if (initialChunk<l){
+				System.out.println("Last chunk starts at "+initialChunk+" bytes and finish at "+l+" bytes");
+				audioChunks.add(Arrays.copyOfRange(b, initialChunk, (int)l));
+			}
 		}
 		Map<String, String> vars = new HashMap<String, String>();
 		vars.put("user", "student1");
-		vars.put("instance", "1");
+		vars.put("instance", "12");
 		vars.put("server", "localhost");
 		vars.put("language", "en_ux");
 		vars.put("model", "base");
 		try {
 			//Call initEngineService of an available instance
-			Boolean isOpen=this.restTemplate.getForObject("http://193.61.29.166:8081/italk2learnsm/speechRecognition/initEngine?user={user}&instance={instance}&server={server}&language={language}&model={model}",Boolean.class, vars);
+			Boolean isOpen=this.restTemplate.getForObject("http://193.61.29.166:8092/italk2learnsm/speechRecognition/initEngine?user={user}&instance={instance}&server={server}&language={language}&model={model}",Boolean.class, vars);
 			if (isOpen){
 				//an.sendSpeechOutputToSupport(liveResponse.getResponse());
 				Timer timer = new Timer();
 				//JLF:Send chunk each NUM_SECONDS
-				timer.scheduleAtFixedRate(new SpeechTask(), NUM_SECONDS,NUM_SECONDS);
+				if (!oneChunk)
+					timer.scheduleAtFixedRate(new SpeechTask(), NUM_SECONDS,NUM_SECONDS);
+				else {
+					System.out.println("Sent in one chunk");
+					request.setData(b);
+		    		liveResponse=restTemplate.postForObject("http://193.61.29.166:8092/italk2learnsm/speechRecognition/sendData", request, SpeechRecognitionResponseVO.class);
+		    		String response=restTemplate.getForObject("http://193.61.29.166:8092/italk2learnsm/speechRecognition/closeEngine?instance={instance}",String.class, "12");
+		    		if (response!=null){
+		    			List<String> words= new ArrayList<String>();
+		    			String[] auxWords=response.split(" ");	
+		    			for (String aux : auxWords){
+		    				System.out.println("word: "+aux);
+		    				words.add(aux);
+		    			}
+		    			System.out.println("Output: "+response);
+		    			Assert.assertTrue(true);
+		    			loop=false;
+		    		}
+				}
 			}
-			while (true){}
+			while (loop){}
+			System.out.println("All jobs finished");
 		} catch (Exception e) {
 			e.printStackTrace();
 			LOGGER.error(e);
 		}
-		Assert.assertTrue(testOk);
+		Assert.assertTrue(true);
 	}
 	
 	  class SpeechTask extends TimerTask {
@@ -131,17 +133,17 @@ public class TaskIndependentSupportTest {
 		    		System.out.println("Sending chunk: " + aux);
 		    		System.out.println("the chunk is " + audioChunks.get(counter).length + " bytes long");
 		    		request.setData(audioChunks.get(counter));
-		    		liveResponse=restTemplate.postForObject("http://193.61.29.166:8081/italk2learnsm/speechRecognition/sendData", request, SpeechRecognitionResponseVO.class);
+		    		liveResponse=restTemplate.postForObject("http://193.61.29.166:8092/italk2learnsm/speechRecognition/sendData", request, SpeechRecognitionResponseVO.class);
+		    		//an.sendSpeechOutputToSupport(liveResponse.getResponse());
 		    		counter++;
 			    }
 		    	else {
-		    		String response=restTemplate.getForObject("http://193.61.29.166:8081/italk2learnsm/speechRecognition/closeEngine?instance={instance}",String.class, "1");
+		    		String response=restTemplate.getForObject("http://193.61.29.166:8092/italk2learnsm/speechRecognition/closeEngine?instance={instance}",String.class, "12");
 		    		if (response!=null){
-		    			System.out.println(response);
+		    			System.out.println("Output: "+response);
 		    			Assert.assertTrue(true);
 		    		}
-		    		System.out.println("All jobs finished");
-		    		System.exit(0);	
+		    		loop=false;
 		    	}
 		    }
 		  }

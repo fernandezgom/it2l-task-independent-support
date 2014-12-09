@@ -1,5 +1,7 @@
 package com.italk2learn.vo;
 
+import java.util.List;
+
 public class TaskIndependentSupportRequestVO extends RequestVO {
 
 	/**
@@ -7,13 +9,30 @@ public class TaskIndependentSupportRequestVO extends RequestVO {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private String[] words;
+	private List<String> words;
 	
-	public String[] getWords() {
+	private Boolean checkMathKeywords;
+	
+	private int File;
+	
+	public List<String> getWords() {
 		return words;
 	}
-	public void setWords(String[] words) {
+	public void setWords(List<String> words) {
 		this.words = words;
+	}
+	public Boolean getCheckMathKeywords() {
+		return checkMathKeywords;
+	}
+	public void setCheckMathKeywords(Boolean checkMathKeywords) {
+		this.checkMathKeywords = checkMathKeywords;
+	}
+	
+	public int getFile() {
+		return File;
+	}
+	public void setFile(int file) {
+		File = file;
 	} 
 
 }

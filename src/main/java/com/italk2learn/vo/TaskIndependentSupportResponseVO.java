@@ -12,6 +12,9 @@ public class TaskIndependentSupportResponseVO extends ResponseVO {
 	private String taskInfoPackage;
 	
 	private boolean response;
+	
+	public boolean popUpWindow = true;
+	public String message = "";
 
 	public boolean getResponse() {
 		return response;
@@ -28,6 +31,22 @@ public class TaskIndependentSupportResponseVO extends ResponseVO {
 
 	public void setTaskInfoPackage(String taskInfoPackage) {
 		this.taskInfoPackage = taskInfoPackage;
+	}
+	
+	public String getMessage(){
+		return message;
+	}
+	
+	public boolean getPopUpWindow(){
+		return popUpWindow;
+	}
+	
+	public void setMessage(String value) {
+		message = value;
+	}
+
+	public void setPopUpWindow(boolean value){
+		popUpWindow = value;
 	}
 
 }
