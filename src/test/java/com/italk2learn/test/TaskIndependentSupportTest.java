@@ -29,7 +29,7 @@ import com.italk2learn.vo.SpeechRecognitionResponseVO;
 @Configuration(locations = { "web-application-config.xml" })
 public class TaskIndependentSupportTest {
 	
-	private static final int ARRAY_SIZE = 100000;
+	private static final int ARRAY_SIZE = 200000;
 	private static final int NUM_SECONDS = 5 * 1000;
 	
 	@Dependency
