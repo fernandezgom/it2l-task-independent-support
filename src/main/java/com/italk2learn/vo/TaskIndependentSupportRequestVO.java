@@ -13,10 +13,10 @@ public class TaskIndependentSupportRequestVO extends RequestVO {
 	
 	private Boolean checkMathKeywords;
 	
-	private String feedbacktext;
+	private String feedbackText;
 	private String currentFeedbackType;
 	private String previousFeedbackType;
-	private Boolean followed;
+	private boolean followed;
 	
 	private int File;
 	
@@ -39,12 +39,6 @@ public class TaskIndependentSupportRequestVO extends RequestVO {
 	public void setFile(int file) {
 		File = file;
 	}
-	public String getFeedbacktext() {
-		return feedbacktext;
-	}
-	public void setFeedbacktext(String feedbacktext) {
-		this.feedbacktext = feedbacktext;
-	}
 	public String getCurrentFeedbackType() {
 		return currentFeedbackType;
 	}
@@ -57,11 +51,17 @@ public class TaskIndependentSupportRequestVO extends RequestVO {
 	public void setPreviousFeedbackType(String previousFeedbackType) {
 		this.previousFeedbackType = previousFeedbackType;
 	}
-	public Boolean getFollowed() {
+	public boolean getFollowed() {
 		return followed;
 	}
-	public void setFollowed(Boolean followed) {
+	public void setFollowed(boolean followed) {
 		this.followed = followed;
-	} 
+	}
+	public String getFeedbackText() {
+		return feedbackText;
+	}
+	public void setFeedbackText(String feedbackText) {
+		this.feedbackText = feedbackText;
+	}
 
 }
