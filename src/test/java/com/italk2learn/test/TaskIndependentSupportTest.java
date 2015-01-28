@@ -29,7 +29,7 @@ import com.italk2learn.vo.SpeechRecognitionResponseVO;
 @Configuration(locations = { "web-application-config.xml" })
 public class TaskIndependentSupportTest {
 	
-	private static final int ARRAY_SIZE = 200000;
+	private static final int ARRAY_SIZE = 250000;// Should be a multiple of 16
 	private static final int NUM_SECONDS = 5 * 1000;
 	
 	@Dependency
@@ -72,12 +72,17 @@ public class TaskIndependentSupportTest {
 		if (!oneChunk) {
 			int initialChunk=0;
 			int finalChunk=(int)l/(int)numChunks;
+		    if ((finalChunk % 16)!=0)
+		           finalChunk=finalChunk-(finalChunk % 16);
+				
 			for (int i=0;i<numChunks;i++){
 				byte[] aux=Arrays.copyOfRange(b, initialChunk, finalChunk);
 				audioChunks.add(aux);
 				System.out.println("Chunk "+i+" starts at "+initialChunk+" bytes and finish at "+finalChunk+" bytes");
 				initialChunk=finalChunk;
 				finalChunk=finalChunk+((int)l/(int)numChunks);
+			    if ((finalChunk % 16)!=0)
+			        finalChunk=finalChunk-(finalChunk % 16);
 			}
 			if (initialChunk<l){
 				System.out.println("Last chunk starts at "+initialChunk+" bytes and finish at "+l+" bytes");
