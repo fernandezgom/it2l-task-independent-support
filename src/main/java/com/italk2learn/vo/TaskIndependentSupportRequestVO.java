@@ -13,10 +13,12 @@ public class TaskIndependentSupportRequestVO extends RequestVO {
 	
 	private Boolean checkMathKeywords;
 	
-	private String feedbackText;
+	private List<String> feedbackText;
 	private String currentFeedbackType;
-	private String previousFeedbackType;
+	private int level;
 	private boolean followed;
+	private boolean viewed;
+	private boolean flEnable;
 	
 	private int File;
 	
@@ -45,23 +47,35 @@ public class TaskIndependentSupportRequestVO extends RequestVO {
 	public void setCurrentFeedbackType(String currentFeedbackType) {
 		this.currentFeedbackType = currentFeedbackType;
 	}
-	public String getPreviousFeedbackType() {
-		return previousFeedbackType;
-	}
-	public void setPreviousFeedbackType(String previousFeedbackType) {
-		this.previousFeedbackType = previousFeedbackType;
-	}
 	public boolean getFollowed() {
 		return followed;
 	}
 	public void setFollowed(boolean followed) {
 		this.followed = followed;
 	}
-	public String getFeedbackText() {
+	public List<String> getFeedbackText() {
 		return feedbackText;
 	}
-	public void setFeedbackText(String feedbackText) {
+	public void setFeedbackText(List<String> feedbackText) {
 		this.feedbackText = feedbackText;
+	}
+	public boolean isFlEnable() {
+		return flEnable;
+	}
+	public void setFlEnable(boolean flEnable) {
+		this.flEnable = flEnable;
+	}
+	public int getLevel() {
+		return level;
+	}
+	public void setLevel(int level) {
+		this.level = level;
+	}
+	public boolean isViewed() {
+		return viewed;
+	}
+	public void setViewed(boolean viewed) {
+		this.viewed = viewed;
 	}
 
 }
