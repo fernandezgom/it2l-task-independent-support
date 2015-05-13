@@ -6,12 +6,12 @@ public class Feedback {
 	
 	
 	public void sendFeedbackInStructuredExercise(StudentModel student, String message,  String type, TISWrapper wrapper){
-		wrapper.setMessage(message);
 		wrapper.setPopUpWindow(true);
+		wrapper.setMessage(message, true);
 		
 		student.setHighMessage(wrapper.getPopUpWindow());
 		wrapper.setType(type);
-		wrapper.setMessage(message);
+		wrapper.setMessage(message, true);
 		Affect currentAffect = student.getCombinedAffect();
 		String affectString = getCurrentAffectValueAsString(currentAffect);
 		wrapper.setCurrentAffect(affectString);
@@ -71,8 +71,20 @@ public class Feedback {
 		if (type.equals("AFFIRMATION")){
 			System.out.println(" FEEDBACK AFFIRMATION ");
 			wrapper.setPopUpWindow(true);
-			student.setAtTheEnd(true);
+			
+			//not sure if we need to set this to stop checking spoken words as we need this for
+			//the last reflective prompt.
+			//student.setAtTheEnd(true);
 		}
+		else if (student.getFeedbackID().contains("E")){
+			System.out.println(" FEEDBACK LAST REFLECTIVE PROMPT ");
+			wrapper.setPopUpWindow(true);
+		}
+		//let TIS decide how to present messages
+		//else if (student.getCurrentFeedbackType() == FeedbackData.talkAloud){
+		//	System.out.println(" FEEDBACK TALK ALOUD PROMPT ");
+		//	wrapper.setPopUpWindow(true);
+		//}
 		else {
 			System.out.println(" FEEDBACK NOT AFFIRMATION ");
 			if (currentAffect.isFlow()){
@@ -141,7 +153,7 @@ public class Feedback {
 		student.setHighMessage(wrapper.getPopUpWindow());
 		System.out.println(" FEEDBACK high interruptive: "+wrapper.getPopUpWindow());
 		student.resetAffectWords();
-		wrapper.setMessage(message);
+		wrapper.setMessage(message, wrapper.getPopUpWindow());
 		wrapper.setType(type);
 		String affectString = getCurrentAffectValueAsString(currentAffect);
 		wrapper.setCurrentAffect(affectString);

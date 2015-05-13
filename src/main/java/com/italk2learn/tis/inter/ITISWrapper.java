@@ -2,13 +2,11 @@ package com.italk2learn.tis.inter;
 
 import java.util.List;
 
-import com.italk2learn.vo.TaskIndependentSupportRequestVO;
-
 public interface ITISWrapper {
 	
-	public void sendTDStoTIS(String user, List<String> feedback, String type, int level, boolean followed, boolean viewed);
+	public void sendTDStoTIS(String user, List<String> feedback, String type, String feedbackID, int level, boolean followed, boolean viewed);
 	
-	public void sendSpeechOutputToSupport(String user, TaskIndependentSupportRequestVO request);
+	public void sendSpeechOutputToSupport(String user, List<String> currentWords);
 	
 	public void startNewExercise();
 	
@@ -24,12 +22,20 @@ public interface ITISWrapper {
 	
 	public boolean getPopUpWindow();
 	
-	public void setMessage(String value);
+	public void setMessage(String value, boolean popUpWindow) ;
 
 	public void setPopUpWindow(boolean value);
 	
 	public String getFeedbackType();
 	
 	public String getCurrentAffect();
+	
+	public void sendDoneButtonPressedToTIS(boolean value);
+	
+	public void setLanguageInTIStoEnglish();
+	
+	public void setLanguageInTIStoSpanish();
+	
+	public void setLanguageInTIStoGerman();
 
 }

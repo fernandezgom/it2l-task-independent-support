@@ -25,7 +25,7 @@ public class Analysis {
 
 	public void resetVariablesForNewExercise(TISWrapper wrapper){
 		student.setAtTheEnd(false);
-		wrapper.setMessage("");
+		wrapper.resetMessage();
 		wrapper.setType("");
 	}
 	
@@ -85,29 +85,30 @@ public class Analysis {
 		student.setAffectSound(affectSound);
 	}
 	
-	public void analyseInteractionAndSetFeedback(List<String> feedback, String type, int level, boolean followed, boolean TDSviewed, TISWrapper wrapper){
-		AffectDetector detector = new AffectDetector();
+	public void analyseInteractionAndSetFeedback(List<String> feedback, String type, String feedbackID, int level, boolean followed, boolean TDSviewed, TISWrapper wrapper){
+		if (student == null) student = new StudentModel();
+		
+		AffectDetector detector = new AffectDetector(wrapper.isLanguageEnglish(), wrapper.isLanguageGerman(), wrapper.isLanguageSpanish());
 		student.setViewedMessage(TDSviewed);
 		if (student.getHighMessage()) student.setViewedMessage(true);
 		boolean viewed = student.viewedMessage();
 		Affect interactionAffect = detector.getAffectFromInteraction(followed, viewed);
 		
-		if (student == null) student = new StudentModel();
 		student.setAffectInteraction(interactionAffect);
 		Affect combinedAffect = detector.getCombinedAffect(student, viewed);
 		student.setCombinedAffect(combinedAffect);
 		student.setFollowed(followed);
-		
+		student.setFeedbackID(feedbackID);
 		
 		Reasoner reasoner = new Reasoner();
-		reasoner.affectiveStateReasoner(student, feedback, type, level, followed, wrapper);
+		reasoner.affectiveStateReasoner(student, feedback, feedbackID, type, level, followed, wrapper);
 		
 	}
 	
 	public void checkIfSpeaking(TISWrapper wrapper){
-		System.out.println("!!!!!");
-		System.out.println("!!!!! check if student is speaking !!!!!");
-		System.out.println("!!!!!");
+		//System.out.println("!!!!!");
+		//System.out.println("!!!!! check if student is speaking !!!!!");
+		//System.out.println("!!!!!");
 		//check currentWordsFromLastMinute
 		
 		if ((currentWordsFromLastMinute != null) && ((student != null)&& (!student.areWeAtTheEnd()))){
@@ -151,7 +152,7 @@ public class Analysis {
 			checkMathsKeywords = false;
 		}
 		if (checkMathsKeywords){
-			MathsVocabDetector mathsDetector = new MathsVocabDetector();
+			MathsVocabDetector mathsDetector = new MathsVocabDetector(wrapper.isLanguageEnglish(), wrapper.isLanguageGerman(), wrapper.isLanguageSpanish());
 			boolean includesMathsWords = mathsDetector.includesMathsWords(currentWordList);
 			System.out.println("::TIS:: includes maths words: "+includesMathsWords);
 			Reasoner reasoner = new Reasoner();
@@ -179,7 +180,7 @@ public class Analysis {
 		
 		currentWordList.addAll(currentWords);
 		
-		AffectDetector detector = new AffectDetector();
+		AffectDetector detector = new AffectDetector(wrapper.isLanguageEnglish(), wrapper.isLanguageGerman(), wrapper.isLanguageSpanish());
 		Affect currentAffect = detector.getAffectFromWords(currentWords);
 		
 		if (student == null) student = new StudentModel();

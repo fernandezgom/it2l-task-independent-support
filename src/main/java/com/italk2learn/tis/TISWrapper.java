@@ -25,6 +25,10 @@ public class TISWrapper implements ITISWrapper {
 	boolean firstTime = false;
 	String currentUser = "";
 	String startUser="";
+	boolean doneButtonPressed = true;
+	boolean languageEnglish = true;
+	boolean languageSpanish = false;
+	boolean languageGerman = false;
 	
 	public TISWrapper(){
 		startUser = "anonym";
@@ -36,9 +40,44 @@ public class TISWrapper implements ITISWrapper {
 		uploadCheckerTimer.scheduleAtFixedRate(timerSpeechTask, 30 * 1000, 60 * 1000);
 	}
 	
-	public void sendTDStoTIS(String user, List<String> feedback, String type, int level, boolean followed, boolean viewed){
+	public void setLanguageInTIStoEnglish(){
+		languageEnglish = true;
+		languageSpanish = false;
+		languageGerman = false;
+	}
+	
+	public void setLanguageInTIStoSpanish(){
+		languageEnglish = false;
+		languageSpanish = true;
+		languageGerman = false;
+	}
+	
+	public void setLanguageInTIStoGerman(){
+		languageEnglish = false;
+		languageSpanish = false;
+		languageGerman = true;
+	}
+	
+	public boolean isLanguageEnglish(){
+		return languageEnglish;
+	}
+	
+	public boolean isLanguageSpanish(){
+		return languageSpanish;
+	}
+	
+	public boolean isLanguageGerman(){
+		return languageGerman;
+	}
+	
+	public void sendDoneButtonPressedToTIS(boolean value){
+		doneButtonPressed = value;
+	}
+	
+	public void sendTDStoTIS(String user, List<String> feedback, String type, String feedbackID, int level, boolean followed, boolean viewed){
 		System.out.println("::: TDStoTIS :::");
 		System.out.println("::: feedback type ::: "+type);
+		System.out.println("::: feedback id ::: "+feedbackID);
 		System.out.println("followed: "+followed+" viewed: "+viewed);
 		System.out.println("::: fractionsLabInUse::: "+fractionsLabInUse);
 		currentUser = user;
@@ -49,14 +88,15 @@ public class TISWrapper implements ITISWrapper {
 				viewed = true;
 				firstTime = false;
 			}
-			analysis.analyseInteractionAndSetFeedback(feedback, type, level, followed, viewed, this);
+			analysis.analyseInteractionAndSetFeedback(feedback, type, feedbackID, level, followed, viewed, this);
 		}
 	}
 	
 	
-	public void sendSpeechOutputToSupport(String user, TaskIndependentSupportRequestVO request) {
+	public void sendSpeechOutputToSupport(String user, List<String> currentWords){//, TaskIndependentSupportRequestVO request) {
 		currentUser = user;
-		analysis.analyseWords(request.getWords(), this);
+		//analysis.analyseWords(request.getWords(), this);
+		analysis.analyseWords(currentWords, this);
 	}
 	
 	
@@ -88,11 +128,9 @@ public class TISWrapper implements ITISWrapper {
 	}
 
 	public String getMessage(){
-		LdapUserDetailsImpl user = (LdapUserDetailsImpl)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		startUser=user.getUsername();
 		String result ="";
 		if (message.length() > 0) {
-			result = "start user: "+startUser+" user: "+currentUser+" message: "+message;
+			result = message;
 		}
 		message = "";
 		return result;
@@ -114,14 +152,35 @@ public class TISWrapper implements ITISWrapper {
 		return popUpWindow;
 	}
 	
-	public void setMessage(String value) {
-		System.out.println(":::::: setMessage :::: "+value);
-		message = value;
+	private void checkMathsWordsTimer(){
 		if (uploadCheckMathsWordsTimer != null){
 			uploadCheckMathsWordsTimer.cancel();
 			uploadCheckMathsWordsTimer.purge();
 			timerSpeechMathsWords.cancel();
 		}
+	}
+	
+	public void setMessage(String value, boolean popUpWindow) {
+		if (fractionsLabInUse){
+			if (doneButtonPressed) {
+				System.out.println(":::::: setMessage :::: "+value);
+				message = value;
+				checkMathsWordsTimer();
+				if (popUpWindow){
+					doneButtonPressed = false;
+				}
+			}
+		}
+		else {
+			System.out.println(":::::: setMessage :::: "+value);
+			message = value;
+			checkMathsWordsTimer();
+		}
+	}
+	
+	public void resetMessage(){
+		message = "";
+		checkMathsWordsTimer();
 	}
 
 	public void setPopUpWindow(boolean value){
@@ -135,7 +194,10 @@ public class TISWrapper implements ITISWrapper {
 			((TimerForMathsWordCheck) timerSpeechMathsWords).setAnalysis(analysis);
 			((TimerForMathsWordCheck) timerSpeechMathsWords).setWrapper(this);
 			uploadCheckMathsWordsTimer = new Timer(true);
-			uploadCheckMathsWordsTimer.scheduleAtFixedRate(timerSpeechMathsWords, 6000, 6*1000);
+			
+			//this needs to get checked if it stops after displaying it only once..
+			uploadCheckMathsWordsTimer.scheduleAtFixedRate(timerSpeechMathsWords, 3*6000, 0);
+			
 		}
 	}
 

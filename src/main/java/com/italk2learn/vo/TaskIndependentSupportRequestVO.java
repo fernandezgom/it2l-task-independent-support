@@ -16,9 +16,11 @@ public class TaskIndependentSupportRequestVO extends RequestVO {
 	private List<String> feedbackText;
 	private String currentFeedbackType;
 	private int level;
+	private String feedbackID;
 	private boolean followed;
 	private boolean viewed;
 	private boolean flEnable;
+	private boolean donePressed;
 	
 	private int File;
 	
@@ -76,6 +78,18 @@ public class TaskIndependentSupportRequestVO extends RequestVO {
 	}
 	public void setViewed(boolean viewed) {
 		this.viewed = viewed;
+	}
+	public String getFeedbackID() {
+		return feedbackID;
+	}
+	public void setFeedbackID(String feedbackID) {
+		this.feedbackID = feedbackID;
+	}
+	public boolean isDonePressed() {
+		return donePressed;
+	}
+	public void setDonePressed(boolean donePressed) {
+		this.donePressed = donePressed;
 	}
 
 }
