@@ -22,7 +22,7 @@ public interface ITISWrapper {
 	
 	public boolean getPopUpWindow();
 	
-	public void setMessage(String value, boolean popUpWindow) ;
+	public void setMessage(String value, boolean popUpWindow, String type);
 
 	public void setPopUpWindow(boolean value);
 	
@@ -37,5 +37,7 @@ public interface ITISWrapper {
 	public void setLanguageInTIStoSpanish();
 	
 	public void setLanguageInTIStoGerman();
+	
+	public boolean getTDSfeedback();
 
 }

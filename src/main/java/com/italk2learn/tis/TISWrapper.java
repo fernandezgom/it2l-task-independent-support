@@ -4,15 +4,27 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
 import org.springframework.stereotype.Service;
 
+import com.italk2learn.bo.inter.ILoginUserService;
+import com.italk2learn.dao.inter.ITISLogDAO;
+import com.italk2learn.exception.ITalk2LearnException;
 import com.italk2learn.tis.inter.ITISWrapper;
-import com.italk2learn.vo.TaskIndependentSupportRequestVO;
+import com.italk2learn.vo.ExerciseSequenceRequestVO;
+import com.italk2learn.vo.HeaderVO;
 
 @Service("TISWrapperService")
 public class TISWrapper implements ITISWrapper {
+	
+	@Autowired
+	public ILoginUserService loginUserService;
+	@Autowired
+	public ITISLogDAO tisLogDAO;
+	
+	
 	public boolean popUpWindow = true;
 	public String message = "";
 	public String feedbackType = "";
@@ -29,6 +41,10 @@ public class TISWrapper implements ITISWrapper {
 	boolean languageEnglish = true;
 	boolean languageSpanish = false;
 	boolean languageGerman = false;
+	boolean TDSfeedback = false;
+	boolean checkForMathsVocab = false;
+	String nameForValueThatNeedsTogetSavedinDB = "";
+	String valueThatNeedsTogetSavedinDB = "";
 	
 	public TISWrapper(){
 		startUser = "anonym";
@@ -72,6 +88,9 @@ public class TISWrapper implements ITISWrapper {
 	
 	public void sendDoneButtonPressedToTIS(boolean value){
 		doneButtonPressed = value;
+		if (!value){
+			checkMathsWords();
+		}
 	}
 	
 	public void sendTDStoTIS(String user, List<String> feedback, String type, String feedbackID, int level, boolean followed, boolean viewed){
@@ -160,26 +179,71 @@ public class TISWrapper implements ITISWrapper {
 		}
 	}
 	
-	public void setMessage(String value, boolean popUpWindow) {
+	public void saveLog(String name, String value){
+		ExerciseSequenceRequestVO request= new ExerciseSequenceRequestVO();
+		LdapUserDetailsImpl	user = (LdapUserDetailsImpl)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		request.setHeaderVO(new HeaderVO());
+		request.getHeaderVO().setLoginUser(user.getUsername());
+		try {
+			getTisLogDAO().storeDataTIS(getLoginUserService().getIdUserInfo(request.getHeaderVO()), name, value);
+		} catch (ITalk2LearnException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		nameForValueThatNeedsTogetSavedinDB = name;
+		valueThatNeedsTogetSavedinDB = value;
+	}
+	
+	public String getLogName(){
+		String result = "";
+		if (!nameForValueThatNeedsTogetSavedinDB.equals("")){
+			result = nameForValueThatNeedsTogetSavedinDB;
+			nameForValueThatNeedsTogetSavedinDB = "";
+		}
+		return result;
+	}
+	
+	public String getLogValue(){
+		String result = "";
+		if (!valueThatNeedsTogetSavedinDB.equals("")){
+			result = valueThatNeedsTogetSavedinDB;
+			valueThatNeedsTogetSavedinDB = "";
+		}
+		return result;
+	}
+	
+	public void setMessage(String value, boolean popUpWindow, String type) {
 		if (fractionsLabInUse){
 			if (doneButtonPressed) {
 				System.out.println(":::::: setMessage :::: "+value);
 				message = value;
+				setType(type);
 				checkMathsWordsTimer();
+				saveLog("TIS.message", message);
+				saveLog("TIS.type", type);
+				if (popUpWindow)
+					saveLog("TIS.popUp", "true");
+				else {
+					saveLog("TIS.popUp", "false");
+				}
+				
 				if (popUpWindow){
 					doneButtonPressed = false;
+					checkMathsWords();
 				}
 			}
 		}
 		else {
 			System.out.println(":::::: setMessage :::: "+value);
 			message = value;
+			setType(type);
 			checkMathsWordsTimer();
 		}
 	}
 	
 	public void resetMessage(){
 		message = "";
+		setType("");
 		checkMathsWordsTimer();
 	}
 
@@ -187,9 +251,27 @@ public class TISWrapper implements ITISWrapper {
 		popUpWindow = value;
 	}
 	
-	public void setType(String value){
+	private void setType(String value){
 		feedbackType = value;
+		
+		if (value.equals("NEXT_STEP") || value.equals("PROBLEM_SOLVING")){
+			setTDSfeedback(true);
+		}
+		else {
+			setTDSfeedback(false);
+		}
+		
+		
 		if (value.equals("REFLECTION")){
+			checkForMathsVocab = true;
+		}
+		else {
+			checkForMathsVocab = false;
+		}
+	}
+	
+	private void checkMathsWords(){
+		if (checkForMathsVocab){
 			timerSpeechMathsWords = new TimerForMathsWordCheck();
 			((TimerForMathsWordCheck) timerSpeechMathsWords).setAnalysis(analysis);
 			((TimerForMathsWordCheck) timerSpeechMathsWords).setWrapper(this);
@@ -197,8 +279,15 @@ public class TISWrapper implements ITISWrapper {
 			
 			//this needs to get checked if it stops after displaying it only once..
 			uploadCheckMathsWordsTimer.scheduleAtFixedRate(timerSpeechMathsWords, 3*6000, 0);
-			
 		}
+	}
+	
+	private void setTDSfeedback(boolean value){
+		TDSfeedback = value;
+	}
+	
+	public boolean getTDSfeedback(){
+		return TDSfeedback;
 	}
 
 	public void setCurrentAffect(String value) {
@@ -207,5 +296,13 @@ public class TISWrapper implements ITISWrapper {
 
 	public void resetCurrentWordList() {
 		analysis.resetCurrentWordList();
+	}
+	
+	public ILoginUserService getLoginUserService() {
+		return loginUserService;
+	}
+
+	public ITISLogDAO getTisLogDAO() {
+		return tisLogDAO;
 	}
 }

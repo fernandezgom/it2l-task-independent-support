@@ -26,7 +26,6 @@ public class Analysis {
 	public void resetVariablesForNewExercise(TISWrapper wrapper){
 		student.setAtTheEnd(false);
 		wrapper.resetMessage();
-		wrapper.setType("");
 	}
 	
 	public void startSupport(boolean start) {
@@ -101,16 +100,12 @@ public class Analysis {
 		student.setFeedbackID(feedbackID);
 		
 		Reasoner reasoner = new Reasoner();
-		reasoner.affectiveStateReasoner(student, feedback, feedbackID, type, level, followed, wrapper);
+		reasoner.affectiveStateReasoner(student, feedback, type, feedbackID, level, followed, wrapper);
 		
 	}
 	
 	public void checkIfSpeaking(TISWrapper wrapper){
-		//System.out.println("!!!!!");
-		//System.out.println("!!!!! check if student is speaking !!!!!");
-		//System.out.println("!!!!!");
-		//check currentWordsFromLastMinute
-		
+			
 		if ((currentWordsFromLastMinute != null) && ((student != null)&& (!student.areWeAtTheEnd()))){
 			Reasoner reasoner = new Reasoner();
 			if (student == null) student = new StudentModel();

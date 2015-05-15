@@ -18,6 +18,16 @@ public class Reasoner {
 		
 		Affect currentAffect = student.getCombinedAffect();
 		
+		//set followed when previous feedback was not TDS problem solving
+		if (!wrapper.getTDSfeedback()){
+			if (currentAffect.isFrustration()){
+				followed = true;
+			}
+			else {
+				followed = false;
+			}
+		}
+		
 		/*
 		 * BN values - affective state reasoner
 		 * {affect_boosts, next_step, problem_solving, reflection}
@@ -82,6 +92,9 @@ public class Reasoner {
 			else if (currentFeedbackType == FeedbackData.reflection){
 				System.out.println(i+": REFLECTION");
 			}
+			else if (currentFeedbackType == FeedbackData.taskNotFinished){
+				System.out.println(i+": TASK NOT FINISHED");
+			}
 		}
 		
 		
@@ -93,6 +106,10 @@ public class Reasoner {
 			//last reflective prompt
 			message = getFirstMessage(socratic, guidance, didacticConceptual, didacticProcedural);
 			student.setCurrentFeedbackType(FeedbackData.reflection);
+		}
+		else if (type.equals("TASK_NOT_FINISHED")){
+			message = getFirstMessage(socratic, guidance, didacticConceptual, didacticProcedural);
+			student.setCurrentFeedbackType(FeedbackData.taskNotFinished);
 		}
 		else {
 			for (int i = 0; i < feedbackTypes.length; i++){
@@ -180,9 +197,31 @@ public class Reasoner {
 		}
 		String newType = getTypeFromFeedbackType(student);
 		Feedback displayFeedback = new Feedback();
+		System.out.println("<<<<<< affect: "+getCurrentAffect(currentAffect)+" followed: "+followed+" feedback: "+newType+" >>>>>>");
 		displayFeedback.sendFeedback(student, message, newType, followed, wrapper);
 	}
 	
+	private String getCurrentAffect(Affect affect){
+		String result = "";
+		
+		if (affect.isBoredom()){
+			result = "boredom";
+		}
+		else if (affect.isConfusion()){
+			result = "confusion";
+		}
+		else if (affect.isFlow()){
+			result = "flow";
+		}
+		else if (affect.isFrustration()){
+			result = "frustration";
+		}
+		else if (affect.isSurprise()){
+			result = "surprise";
+		}
+		
+		return result;
+	}
 	
 	private String getTypeFromFeedbackType(StudentModel student){
 		int type = student.getCurrentFeedbackType();
@@ -195,6 +234,7 @@ public class Reasoner {
 		else if (type == FeedbackData.mathsVocabular) result = "MATHS_VOCAB";
 		else if (type == FeedbackData.talkAloud) result = "TALK_ALOUD";
 		else if (type == FeedbackData.affirmation) result = "AFFIRMATION";
+		else if (type == FeedbackData.taskNotFinished) result = "TASK_NOT_FINISHED";
 		
 		return result;
 		

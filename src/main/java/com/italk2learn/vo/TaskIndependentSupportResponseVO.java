@@ -15,6 +15,15 @@ public class TaskIndependentSupportResponseVO extends ResponseVO {
 	
 	public boolean popUpWindow = true;
 	public String message = "";
+	public boolean fromTIS;
+
+	public boolean isFromTIS() {
+		return fromTIS;
+	}
+
+	public void setFromTIS(boolean fromTIS) {
+		this.fromTIS = fromTIS;
+	}
 
 	public boolean getResponse() {
 		return response;

@@ -1,17 +1,13 @@
 package com.italk2learn.tis;
 
-import com.italk2learn.vo.TaskIndependentSupportRequestVO;
 
 public class Feedback {
 	
 	
 	public void sendFeedbackInStructuredExercise(StudentModel student, String message,  String type, TISWrapper wrapper){
 		wrapper.setPopUpWindow(true);
-		wrapper.setMessage(message, true);
-		
 		student.setHighMessage(wrapper.getPopUpWindow());
-		wrapper.setType(type);
-		wrapper.setMessage(message, true);
+		wrapper.setMessage(message, true, type);
 		Affect currentAffect = student.getCombinedAffect();
 		String affectString = getCurrentAffectValueAsString(currentAffect);
 		wrapper.setCurrentAffect(affectString);
@@ -80,6 +76,10 @@ public class Feedback {
 			System.out.println(" FEEDBACK LAST REFLECTIVE PROMPT ");
 			wrapper.setPopUpWindow(true);
 		}
+		else if (type.equals("TASK_NOT_FINISHED")){
+			System.out.println(" FEEDBACK TASK_NOT_FINISHED ");
+			wrapper.setPopUpWindow(true);
+		}
 		//let TIS decide how to present messages
 		//else if (student.getCurrentFeedbackType() == FeedbackData.talkAloud){
 		//	System.out.println(" FEEDBACK TALK ALOUD PROMPT ");
@@ -128,7 +128,7 @@ public class Feedback {
 			else if (currentAffect.isFrustration()){
 				System.out.println(" FEEDBACK current affect FRUSTATION and followed: "+followed);
 				if (followed){
-					if (frustrationFollowedHigh > frustrationFollowedLow){
+					if (frustrationFollowedHigh >= frustrationFollowedLow){
 						wrapper.setPopUpWindow(true);
 					}
 					else {
@@ -153,9 +153,9 @@ public class Feedback {
 		student.setHighMessage(wrapper.getPopUpWindow());
 		System.out.println(" FEEDBACK high interruptive: "+wrapper.getPopUpWindow());
 		student.resetAffectWords();
-		wrapper.setMessage(message, wrapper.getPopUpWindow());
-		wrapper.setType(type);
+		wrapper.setMessage(message, wrapper.getPopUpWindow(), type);
 		String affectString = getCurrentAffectValueAsString(currentAffect);
+		System.out.println("<<<<<< affect: "+affectString+" followed: "+followed+" pop up: "+wrapper.getPopUpWindow()+" >>>>>>");
 		wrapper.setCurrentAffect(affectString);
 		wrapper.resetCurrentWordList();
 	}
