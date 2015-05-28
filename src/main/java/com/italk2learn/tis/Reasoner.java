@@ -6,8 +6,6 @@ import java.util.Random;
 
 import org.apache.commons.lang.ArrayUtils;
 
-import com.italk2learn.vo.TaskIndependentSupportRequestVO;
-
 public class Reasoner {
 	
 	
@@ -20,13 +18,19 @@ public class Reasoner {
 		
 		//set followed when previous feedback was not TDS problem solving
 		if (!wrapper.getTDSfeedback()){
-			if (currentAffect.isFrustration()){
-				followed = true;
-			}
-			else {
-				followed = false;
-			}
+			followed = student.getIsSpeaking();
+			//if (currentAffect.isFrustration()){
+			//	followed = true;
+			//}
+			//else {
+			//	followed = false;
+			//}
 		}
+		
+		wrapper.saveLog("TIS.BN.feedback.type.input.type", type);
+		wrapper.saveLog("TIS.BN.feedback.type.input.id", feedbackID);
+		wrapper.saveLog("TIS.BN.feedback.type.input.level", ""+level);
+		wrapper.saveLog("TIS.BN.feedback.type.input.followed", ""+followed);
 		
 		/*
 		 * BN values - affective state reasoner
@@ -58,7 +62,7 @@ public class Reasoner {
 			reflectiveForFrustration = FeedbackData.reflectiveForFrustrationGerman;
 		}
 		else {
-			reflectiveTask = FeedbackData.reflectiveTaskGerman;
+			reflectiveTask = FeedbackData.reflectiveTask;
 			affectBoostsForConfusion = FeedbackData.affectBoostsForConfusion;
 			affectBoostsForFrustration = FeedbackData.affectBoostsForFrustration;
 			affectBoostsForBoredom = FeedbackData.affectBoostsForBoredom;
@@ -195,7 +199,13 @@ public class Reasoner {
 				}	
 			}
 		}
+		
 		String newType = getTypeFromFeedbackType(student);
+		
+		wrapper.saveLog("TIS.BN.feedback.type.output.affect", getCurrentAffect(currentAffect));
+		wrapper.saveLog("TIS.BN.feedback.type.output.type", newType);
+		wrapper.saveLog("TIS.BN.feedback.type.output.message", message);
+		
 		Feedback displayFeedback = new Feedback();
 		System.out.println("<<<<<< affect: "+getCurrentAffect(currentAffect)+" followed: "+followed+" feedback: "+newType+" >>>>>>");
 		displayFeedback.sendFeedback(student, message, newType, followed, wrapper);
@@ -404,7 +414,7 @@ public class Reasoner {
 			affectBoostsForBoredom = FeedbackData.affectBoostsForBoredomGerman;
 		}
 		else {
-			reflectiveTask = FeedbackData.reflectiveTaskGerman;
+			reflectiveTask = FeedbackData.reflectiveTask;
 			affectBoostsForConfusion = FeedbackData.affectBoostsForConfusion;
 			affectBoostsForFrustration = FeedbackData.affectBoostsForFrustration;
 			affectBoostsForBoredom = FeedbackData.affectBoostsForBoredom;
@@ -853,6 +863,7 @@ public class Reasoner {
 		System.out.println("percentageOfNotDetectedWords: "+percentageOfNotDetectedWords);
 		
 		if (percentageOfNotDetectedWords > 20){
+			student.setIsSpeaking(false);
 			String[] messages;
 			if (wrapper.isLanguageGerman()){
 				messages = FeedbackData.talkAloudMessageGerman;
@@ -876,6 +887,9 @@ public class Reasoner {
 			 String type = getTypeFromFeedbackType(student);
 			 feedback.sendFeedbackInStructuredExercise(student, message, type,  wrapper);
 			}
+		}
+		else {
+			student.setIsSpeaking(true);
 		}
 		
 	}

@@ -50,7 +50,7 @@ public class TaskIndependentSupportTest {
 	public void sendRealSpeechToSupport() throws Exception{
 		final int dataSize = (int) (Runtime.getRuntime().maxMemory());
 		System.out.println("Max amount of memory is: "+dataSize);
-		final Analysis an = new Analysis();
+		final Analysis an = null;
 		request.setHeaderVO(new HeaderVO());
 		request.getHeaderVO().setLoginUser("student1");
 		request.setInstance(12);

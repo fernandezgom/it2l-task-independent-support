@@ -13,18 +13,24 @@ public class MathsVocabDetector {
 		languageSpanish = spanish;
 	}
 
-	public boolean includesMathsWords(List<String> words) {
+	public boolean includesMathsWords(List<String> words, TISWrapper wrapper) {
 		//does this include numerator or denominator
 		for (int i = 0; i< words.size(); i++){
 			String current = words.get(i);
 			
 			if (languageEnglish){
 				if (current.equals("numerator") || current.equals("Numerator") ||
-						current.equals("denominator") || current.equals("Denominator")) return true;
+						current.equals("denominator") || current.equals("Denominator")){
+					wrapper.saveLog("TIS.affect.word.math.detected", current);
+					return true;
+				}
 			}
 			if (languageGerman){
 				if (current.equals("nenner") || current.equals("Nenner") ||
-						current.equals("zähler") || current.equals("Zähler")) return true;
+						current.equals("zähler") || current.equals("Zähler")){
+					wrapper.saveLog("TIS.affect.word.math.detected", current);
+					return true;
+				}
 			}
 		}
 		
@@ -33,4 +39,4 @@ public class MathsVocabDetector {
 	
 	
 
-}
+} 

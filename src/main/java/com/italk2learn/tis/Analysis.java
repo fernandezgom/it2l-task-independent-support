@@ -19,8 +19,10 @@ public class Analysis {
 	List<String> currentWordsFromLastMinute;
 	String currentUser;
 	private StudentModel student;
-
-	public Analysis() {
+	TISWrapper wrapper;
+	
+	public Analysis(TISWrapper tisWrapper) {
+		wrapper = tisWrapper;
 	}
 
 	public void resetVariablesForNewExercise(TISWrapper wrapper){
@@ -36,7 +38,7 @@ public class Analysis {
 		currentUser = user;
 	}
 	
-	public void analyseSound(byte[] audioByteArray){
+	public void analyseSound(byte[] audioByteArray, TISWrapper wrapper){
 		int result;
 		if (audioByteArray!=null && audioByteArray.length>SIZE_AUDIO_1MINUTES) {
 			String wavname;
@@ -65,17 +67,23 @@ public class Analysis {
 			result=-1;
 		}
         
+		wrapper.saveLog("TIS.affect.PTDC.value", ""+result);
+		
         if (result == -1){
         	System.out.println("PTD: no result");
+        	wrapper.saveLog("TIS.affect.PTDC", "noResult");
         }
         else if (result == 1){
         	System.out.println("PTD: overchallenged");
+        	wrapper.saveLog("TIS.affect.PTDC", "overchallenged");
         }
         else if (result == 2){
         	System.out.println("PTD: flow");
+        	wrapper.saveLog("TIS.affect.PTDC", "flow");
         }
         else if (result == 3){
         	System.out.println("PTD: underchallenged");
+        	wrapper.saveLog("TIS.affect.PTDC", "underchallenged");
         }
         		
         Affect affectSound = new Affect();
@@ -87,7 +95,7 @@ public class Analysis {
 	public void analyseInteractionAndSetFeedback(List<String> feedback, String type, String feedbackID, int level, boolean followed, boolean TDSviewed, TISWrapper wrapper){
 		if (student == null) student = new StudentModel();
 		
-		AffectDetector detector = new AffectDetector(wrapper.isLanguageEnglish(), wrapper.isLanguageGerman(), wrapper.isLanguageSpanish());
+		AffectDetector detector = new AffectDetector(wrapper.isLanguageEnglish(), wrapper.isLanguageGerman(), wrapper.isLanguageSpanish(), wrapper);
 		student.setViewedMessage(TDSviewed);
 		if (student.getHighMessage()) student.setViewedMessage(true);
 		boolean viewed = student.viewedMessage();
@@ -104,7 +112,7 @@ public class Analysis {
 		
 	}
 	
-	public void checkIfSpeaking(TISWrapper wrapper){
+	public void checkIfSpeaking(){
 			
 		if ((currentWordsFromLastMinute != null) && ((student != null)&& (!student.areWeAtTheEnd()))){
 			Reasoner reasoner = new Reasoner();
@@ -136,7 +144,7 @@ public class Analysis {
 		}
 	}
 	
-	public void checkForMathsWords(TISWrapper wrapper){
+	public void checkForMathsWords(){
 		System.out.println(":::: checkForMathsWords ::::");
 		boolean checkMathsKeywords = false;
 		if ((student.getCurrentFeedbackType() == FeedbackData.reflection) && (student.getHighMessage() ||
@@ -148,7 +156,7 @@ public class Analysis {
 		}
 		if (checkMathsKeywords){
 			MathsVocabDetector mathsDetector = new MathsVocabDetector(wrapper.isLanguageEnglish(), wrapper.isLanguageGerman(), wrapper.isLanguageSpanish());
-			boolean includesMathsWords = mathsDetector.includesMathsWords(currentWordList);
+			boolean includesMathsWords = mathsDetector.includesMathsWords(currentWordList, wrapper);
 			System.out.println("::TIS:: includes maths words: "+includesMathsWords);
 			Reasoner reasoner = new Reasoner();
 			reasoner.checkMathsWords(student, includesMathsWords, wrapper);
@@ -175,7 +183,7 @@ public class Analysis {
 		
 		currentWordList.addAll(currentWords);
 		
-		AffectDetector detector = new AffectDetector(wrapper.isLanguageEnglish(), wrapper.isLanguageGerman(), wrapper.isLanguageSpanish());
+		AffectDetector detector = new AffectDetector(wrapper.isLanguageEnglish(), wrapper.isLanguageGerman(), wrapper.isLanguageSpanish(), wrapper);
 		Affect currentAffect = detector.getAffectFromWords(currentWords);
 		
 		if (student == null) student = new StudentModel();

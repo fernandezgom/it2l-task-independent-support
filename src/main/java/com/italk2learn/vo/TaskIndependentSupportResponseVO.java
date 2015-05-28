@@ -15,14 +15,15 @@ public class TaskIndependentSupportResponseVO extends ResponseVO {
 	
 	public boolean popUpWindow = true;
 	public String message = "";
-	public boolean fromTIS;
+	public boolean fromTDS;
 
-	public boolean isFromTIS() {
-		return fromTIS;
+
+	public boolean isFromTDS() {
+		return fromTDS;
 	}
 
-	public void setFromTIS(boolean fromTIS) {
-		this.fromTIS = fromTIS;
+	public void setFromTDS(boolean fromTDS) {
+		this.fromTDS = fromTDS;
 	}
 
 	public boolean getResponse() {
