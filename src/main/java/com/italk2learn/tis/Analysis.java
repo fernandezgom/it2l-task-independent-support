@@ -24,6 +24,12 @@ public class Analysis {
 	public Analysis(TISWrapper tisWrapper) {
 		wrapper = tisWrapper;
 	}
+	
+	public void setStudentModel() {
+		if (student==null) {
+			student= new StudentModel();
+		}
+	}
 
 	public void resetVariablesForNewExercise(TISWrapper wrapper){
 		student.setAtTheEnd(false);
@@ -113,12 +119,15 @@ public class Analysis {
 	}
 	
 	public void checkIfSpeaking(){
-			
-		if ((currentWordsFromLastMinute != null) && ((student != null)&& (!student.areWeAtTheEnd()))){
+		System.out.println("hier in checkIfSpeaking");
+		if ((student != null)&& (!student.areWeAtTheEnd())){
 			Reasoner reasoner = new Reasoner();
-			if (student == null) student = new StudentModel();
+			//if (student == null) student = new StudentModel();
 			reasoner.checkSpokenWords(currentWordsFromLastMinute, student, wrapper);
-			currentWordsFromLastMinute.clear();
+			if (currentWordsFromLastMinute != null) {
+				currentWordsFromLastMinute.clear();
+			}
+			
 		}
 		
 	}

@@ -42,21 +42,44 @@ public class TISWrapper implements ITISWrapper {
 	boolean languageGerman = false;
 	boolean TDSfeedback = false;
 	boolean checkForMathsVocab = false;
-	String nameForValueThatNeedsTogetSavedinDB = "";
-	String valueThatNeedsTogetSavedinDB = "";
 	String lastMessage = "";
 	String lastType = "";
+	TimerTask timerSpeechTask;
+	Timer uploadCheckerTimer;
 
-	public TISWrapper() {
+	public TISWrapper() {}
+	
+	public void startTIS(){
 		startUser = "anonym";
 		analysis = new Analysis(this);
-		TimerTask timerSpeechTask = new TimerForSpeechCheck();
+		analysis.setStudentModel();
+		timerSpeechTask = new TimerForSpeechCheck();
 		((TimerForSpeechCheck) timerSpeechTask).setAnalysis(analysis);
-		Timer uploadCheckerTimer = new Timer(true);
+		uploadCheckerTimer = new Timer(true);
 		uploadCheckerTimer.scheduleAtFixedRate(timerSpeechTask, 30 * 1000,
 				60 * 1000);
 	}
 
+	public void stopTimers(){
+		if (uploadCheckMathsWordsTimer != null) {
+			uploadCheckMathsWordsTimer.cancel();
+			uploadCheckMathsWordsTimer.purge();
+			uploadCheckMathsWordsTimer = null;
+		}
+		if (timerSpeechMathsWords != null){
+			timerSpeechMathsWords.cancel();
+			timerSpeechMathsWords = null;
+		}
+		if (timerSpeechTask != null){
+			timerSpeechTask.cancel();
+			timerSpeechTask = null;
+		}
+		if (uploadCheckerTimer != null){
+			uploadCheckerTimer.cancel();
+			uploadCheckerTimer = null;
+		}
+	}
+	
 	public void setLanguageInTIStoEnglish() {
 		saveLog("TIS.language", "english");
 		languageEnglish = true;
@@ -108,11 +131,6 @@ public class TISWrapper implements ITISWrapper {
 		System.out.println("followed: " + followed + " viewed: " + viewed);
 		System.out.println("::: fractionsLabInUse::: " + fractionsLabInUse);
 
-		saveLog("TIS.TDS.feedback.type", type);
-		saveLog("TIS.TDS.feedback.id", feedbackID);
-		saveLog("TIS.TDS.feedback.level", "" + level);
-		saveLog("TIS.TDS.feedback.followed", "" + followed);
-		saveLog("TIS.TDS.feedback.viewed", "" + viewed);
 		currentUser = user;
 		if (fractionsLabInUse) {
 			analysis.analyseSound(audioStudent, this);
@@ -130,6 +148,8 @@ public class TISWrapper implements ITISWrapper {
 																					// TaskIndependentSupportRequestVO
 																					// request)
 																					// {
+		//Database connection problem
+		//saveLog("TIS.speech.user", user);
 		currentUser = user;
 		// analysis.analyseWords(request.getWords(), this);
 		analysis.analyseWords(currentWords, this);
@@ -138,6 +158,7 @@ public class TISWrapper implements ITISWrapper {
 	public void startNewExercise() {
 		System.out.println(":: startNewExercise ::");
 		analysis.resetVariablesForNewExercise(this);
+		doneButtonPressed = true;
 		if (uploadCheckMathsWordsTimer != null) {
 			uploadCheckMathsWordsTimer.cancel();
 			uploadCheckMathsWordsTimer.purge();
@@ -213,37 +234,27 @@ public class TISWrapper implements ITISWrapper {
 				e.printStackTrace();
 			}
 		}
-		nameForValueThatNeedsTogetSavedinDB = name;
-		valueThatNeedsTogetSavedinDB = value;
+	}
+	
+	public void popUpOpen(){
+		doneButtonPressed = false;
+	}
+		 
+	public void popUpClosed(){
+		doneButtonPressed = true;
 	}
 
-	public String getLogName() {
-		String result = "";
-		if (!nameForValueThatNeedsTogetSavedinDB.equals("")) {
-			result = nameForValueThatNeedsTogetSavedinDB;
-			nameForValueThatNeedsTogetSavedinDB = "";
-		}
-		return result;
-	}
-
-	public String getLogValue() {
-		String result = "";
-		if (!valueThatNeedsTogetSavedinDB.equals("")) {
-			result = valueThatNeedsTogetSavedinDB;
-			valueThatNeedsTogetSavedinDB = "";
-		}
-		return result;
-	}
 
 	public void setMessage(String value, boolean popUpWindow, String type) {
+		saveLog("TIS.currentUser", currentUser);
 		if (fractionsLabInUse) {
 			if (doneButtonPressed) {
 				System.out.println(":::::: setMessage :::: " + value);
 				message = value;
 				setType(type);
 				checkMathsWordsTimer();
-				saveLog("TIS.message", message);
-				saveLog("TIS.type", type);
+				saveLog("TIS.set.message", message);
+				saveLog("TIS.set.type", type);
 
 				// need to check if that is the correct value for viewed
 				// feedback when done button is set to false
@@ -261,6 +272,8 @@ public class TISWrapper implements ITISWrapper {
 				}
 			}
 		} else {
+			saveLog("TIS.set.message", message);
+			saveLog("TIS.set.type", type);
 			saveLog("TIS.wieved.feedback", message);
 			saveLog("TIS.wieved.type", type);
 			System.out.println(":::::: setMessage :::: " + value);
@@ -284,12 +297,12 @@ public class TISWrapper implements ITISWrapper {
 		feedbackType = value;
 		System.out.println("teeeeeeeesT"+value);
 		if (value.equals("NEXT_STEP") || value.equals("PROBLEM_SOLVING")) {
-			saveLog("TIS.feedback.TDS", "true");
+			saveLog("TIS.feedback.is.TDS.maleRobot", "true");
 			System.out.println("teeeeeeeesT TDS: true");
 			setTDSfeedback(true);
 		} else {
 			System.out.println("teeeeeeeesT TDS: false");
-			saveLog("TIS.feedback.TDS", "false");
+			saveLog("TIS.feedback.is.TDS.maleRobot", "false");
 			setTDSfeedback(false);
 		}
 
@@ -341,7 +354,6 @@ public class TISWrapper implements ITISWrapper {
 	public ILoginUserService getLoginUserService() {
 		return loginUserService;
 	}
-
 	public ITISLogDAO getTisLogDAO() {
 		return tisLogDAO;
 	}
