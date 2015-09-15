@@ -873,7 +873,7 @@ public class Reasoner {
 					followed = student.getIsSpeaking();
 				}
 				else {
-		wrapper.saveLog("TIS.checkWords.getFollowed", "TDS");
+					wrapper.saveLog("TIS.checkWords.getFollowed", "TDS");
 					followed = student.getFollowed();
 				}
 						

@@ -2,6 +2,9 @@ package com.italk2learn.tis;
 
 import java.util.TimerTask;
 
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 public class TimerForSpeechCheck extends TimerTask {
 	Analysis analysis;
 	
@@ -9,6 +12,8 @@ public class TimerForSpeechCheck extends TimerTask {
 		analysis = elem;
 	}
 	
+	@Override
+	@Transactional(propagation=Propagation.REQUIRED)
 	public void run() {
 		analysis.checkIfSpeaking();
 	}

@@ -5,9 +5,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.italk2learn.bo.inter.ILoginUserService;
 import com.italk2learn.dao.inter.ITISLogDAO;
@@ -17,6 +20,8 @@ import com.italk2learn.vo.ExerciseSequenceRequestVO;
 import com.italk2learn.vo.HeaderVO;
 
 @Service("TISWrapperService")
+@Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
+@Transactional(rollbackFor = { ITalk2LearnException.class, ITalk2LearnException.class })
 public class TISWrapper implements ITISWrapper {
 
 	@Autowired
@@ -46,6 +51,8 @@ public class TISWrapper implements ITISWrapper {
 	String lastType = "";
 	TimerTask timerSpeechTask;
 	Timer uploadCheckerTimer;
+	String user;
+
 
 	public TISWrapper() {}
 	
@@ -58,6 +65,11 @@ public class TISWrapper implements ITISWrapper {
 		uploadCheckerTimer = new Timer(true);
 		uploadCheckerTimer.scheduleAtFixedRate(timerSpeechTask, 30 * 1000,
 				60 * 1000);
+		if (SecurityContextHolder.getContext().getAuthentication() != null) {
+			LdapUserDetailsImpl userAux = (LdapUserDetailsImpl) SecurityContextHolder
+					.getContext().getAuthentication().getPrincipal();
+				setUser(userAux.getUsername());
+		}
 	}
 
 	public void stopTimers(){
@@ -221,12 +233,24 @@ public class TISWrapper implements ITISWrapper {
 	public void saveLog(String name, String value) {
 		ExerciseSequenceRequestVO request = new ExerciseSequenceRequestVO();
 		if (SecurityContextHolder.getContext().getAuthentication() != null) {
-			LdapUserDetailsImpl user = (LdapUserDetailsImpl) SecurityContextHolder
+			LdapUserDetailsImpl userAux = (LdapUserDetailsImpl) SecurityContextHolder
 					.getContext().getAuthentication().getPrincipal();
 			request.setHeaderVO(new HeaderVO());
-			request.getHeaderVO().setLoginUser(user.getUsername());
+			request.getHeaderVO().setLoginUser(userAux.getUsername());
 			try {
 				getTisLogDAO().storeDataTIS(
+						getLoginUserService().getIdUserInfo(
+								request.getHeaderVO()), name, value);
+			} catch (ITalk2LearnException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+		} else if ((getUser()!=null) && !getUser().equals("")){
+			request.setHeaderVO(new HeaderVO());
+			request.getHeaderVO().setLoginUser(getUser());
+			try {
+				getTisLogDAO().storeDataTISWithOpenedSession(
 						getLoginUserService().getIdUserInfo(
 								request.getHeaderVO()), name, value);
 			} catch (ITalk2LearnException e) {
@@ -356,5 +380,13 @@ public class TISWrapper implements ITISWrapper {
 	}
 	public ITISLogDAO getTisLogDAO() {
 		return tisLogDAO;
+	}
+	
+	public String getUser() {
+		return user;
+	}
+
+	public void setUser(String user) {
+		this.user = user;
 	}
 }
